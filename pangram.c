@@ -31,13 +31,13 @@
 
 int qsort_strcmp(const void * a, const void * b)
 {
-  return strcmp(*(const char**)a, *(const char**)b);
+    return strcmp(*(const char**)a, *(const char**)b);
 }
 
 void pangram_heterogram(const char *dict_file)
 {
 
-	FILE* fp;    
+    FILE* fp;    
     char* dictionary_data;                          //entire contents of dict_file
     int len_file;                                   //total length of dictionary_data
     int i, iWord;                                   //used as iterators
@@ -52,16 +52,16 @@ void pangram_heterogram(const char *dict_file)
     int* level_dict[NUM_LETTERS];                   //individual dictionary of word masks for each level
     int level_dict_length[NUM_LETTERS];             //length of each dictionary    
     int* level_dict_data;                           //buffer that level_dict points in to
-	int* mask_completed_length;                     //when a mask is processed, the length of the current dictionary is stored at mask_completed_length[mask]
+    int* mask_completed_length;                     //when a mask is processed, the length of the current dictionary is stored at mask_completed_length[mask]
                                                     //if the mask is encountered later, length is used to skip some words
                                                     // (1<<26)*sizeof(int) == 256mb
 
     int level;                                      //stack level, increments as words are added to current sentence, decrements when no solutions remain 
-	int num_solutions;                              //number of completed pangram heterograms
+    int num_solutions;                              //number of completed pangram heterograms
 
 
-	//load a dictionary into dictionary_data
-	fp = fopen(dict_file, "rb");
+    //load a dictionary into dictionary_data
+    fp = fopen(dict_file, "rb");
     if(!fp)
     {
         printf("dictionary file not found\n");
@@ -113,61 +113,61 @@ void pangram_heterogram(const char *dict_file)
         }
     }
     
-	//sort the list
+    //sort the list
     qsort(word_list, num_words, sizeof(char*), qsort_strcmp);
     
-	printf("initial word count: %i\n", num_words);
-	printf("converting dictionary to bitmask\n");
-	printf("removing words that use a letter more than once\n");
+    printf("initial word count: %i\n", num_words);
+    printf("converting dictionary to bitmask\n");
+    printf("removing words that use a letter more than once\n");
      
     //calculate word_mask for each word
     //set mask=0 for words that use a letter more than once
     //words with mask=0 will be removed later
-	for (iWord = 0; iWord < num_words; iWord++)
-	{
-		int mask = 0;
+    for (iWord = 0; iWord < num_words; iWord++)
+    {
+        int mask = 0;
         int c, bit;
 
-		i = 0;
-		while (word_list[iWord][i])
-		{
+        i = 0;
+        while (word_list[iWord][i])
+        {
             word_list[iWord][i] = tolower(word_list[iWord][i]);
-			c = word_list[iWord][i];
+            c = word_list[iWord][i];
 
-			if (c >= 'a' && c <= 'z')
-			{
-				bit = 1 << (c - 'a');
-				if (mask & bit)
-				{
-					mask = 0;
-					break;
-				}
-				mask |= bit;
-			}
-			i++;
-		}
+            if (c >= 'a' && c <= 'z')
+            {
+                bit = 1 << (c - 'a');
+                if (mask & bit)
+                {
+                    mask = 0;
+                    break;
+                }
+                mask |= bit;
+            }
+            i++;
+        }
         
         word_mask[iWord] = mask;
-	}
+    }
        
 
     //compact inplace the word_list and word_mask, removing duplicate words and word_mask==0
-	printf("resizing word list\n");
-	for (i = iWord = 0; i < num_words; i++)
-	{
-		if (word_mask[i] == 0)
-			continue;
+    printf("resizing word list\n");
+    for (i = iWord = 0; i < num_words; i++)
+    {
+        if (word_mask[i] == 0)
+            continue;
 
-		//remove duplicates
-		if(iWord && word_mask[i] == word_mask[iWord-1] && (strcmp(word_list[i], word_list[iWord - 1]) == 0))
-			continue;
+        //remove duplicates
+        if(iWord && word_mask[i] == word_mask[iWord-1] && (strcmp(word_list[i], word_list[iWord - 1]) == 0))
+            continue;
 
-		word_list[iWord] = word_list[i];
-		word_mask[iWord] = word_mask[i];
-		iWord++;
-	}
+        word_list[iWord] = word_list[i];
+        word_mask[iWord] = word_mask[i];
+        iWord++;
+    }
     num_words = iWord;
-	printf("current word count: %i\n", num_words);
+    printf("current word count: %i\n", num_words);
     
     //initialize level_dict pointers to point into level_dict_data allocation
     level_dict_data = (int*)malloc(sizeof(int) * num_words * NUM_LETTERS);
@@ -179,93 +179,93 @@ void pangram_heterogram(const char *dict_file)
     //allocate 256mb on heap
     mask_completed_length = (int*)calloc(1 << 26, sizeof(int));
         
-	//level_dict[0], the current dictionary for stack level 0, is initialized to de-anagram-ed version of word_mask
+    //level_dict[0], the current dictionary for stack level 0, is initialized to de-anagram-ed version of word_mask
     //leaving those words in the main word_list to be printed
-	printf("removing anagrams\n");
-	level_dict_length[0] = 0;
-	for (i = 0; i < num_words; i++)
-	{
-		for (iWord = 0; iWord < level_dict_length[0]; iWord++)
-		{
-			if (word_mask[i] == level_dict[0][iWord])
-				break;
-		}
-		if(iWord != level_dict_length[0])
-			continue;
-		level_dict[0][level_dict_length[0]] = word_mask[i];
-		level_dict_length[0]++;
-	}
-	printf("current word count: %i\n", level_dict_length[0]);
+    printf("removing anagrams\n");
+    level_dict_length[0] = 0;
+    for (i = 0; i < num_words; i++)
+    {
+        for (iWord = 0; iWord < level_dict_length[0]; iWord++)
+        {
+            if (word_mask[i] == level_dict[0][iWord])
+                break;
+        }
+        if(iWord != level_dict_length[0])
+            continue;
+        level_dict[0][level_dict_length[0]] = word_mask[i];
+        level_dict_length[0]++;
+    }
+    printf("current word count: %i\n", level_dict_length[0]);
     
     //initialize vars for level 0
     level = 0;
     level_word_index[0] = -1;
-	level_stop_index[0] = level_dict_length[0];
+    level_stop_index[0] = level_dict_length[0];
     level_mask[0] = 0;
     num_solutions = 0;
 
     //main loop
     while(1)
     {
-	    level_word_index[level]++;										//move to the next word for this level
-	    if (level_word_index[level] >= level_stop_index[level])			//if at end of dictionary
-	    {
-		    level--;											        //return to previous recursion level
-		    if (level < 0)
-			    break;                                                  //finished, exit loop
-		    continue;
-	    }											
+        level_word_index[level]++;                                        //move to the next word for this level
+        if (level_word_index[level] >= level_stop_index[level])            //if at end of dictionary
+        {
+            level--;                                                    //return to previous recursion level
+            if (level < 0)
+                break;                                                  //finished, exit loop
+            continue;
+        }                                            
 
-	    level++;			                                                                                //increase recursion level    
-	    level_mask[level] = level_mask[level - 1] | level_dict[level - 1][level_word_index[level - 1]];	    //create a sentence mask for this level
-	    level_word_index[level] = -1; 
+        level++;                                                                                            //increase recursion level    
+        level_mask[level] = level_mask[level - 1] | level_dict[level - 1][level_word_index[level - 1]];        //create a sentence mask for this level
+        level_word_index[level] = -1; 
 
-	    if(level_mask[level] == ALL_LETTERS_MASK)                       //if sentence contains all letters
-	    {
-		    //reopen all current leaves, prevents skipping these leaves
+        if(level_mask[level] == ALL_LETTERS_MASK)                       //if sentence contains all letters
+        {
+            //reopen all current leaves, prevents skipping these leaves
             //this is a bit inefficient, i could have saved a list of suffix solutions at this bitmask
-			for (i = 0; i < level; i++)
-				mask_completed_length[level_mask[i]] = 0;
-		
-		    //print the current sentence
-		    for (i = 0; i < level; i++)
-		    {
-			    int mask = level_dict[i][level_word_index[i]];
-			    int anagrams_found = 0;
-			    for (iWord = 0; iWord < num_words; iWord++)
-			    {
-				    if (word_mask[iWord] == mask)
-				    {
-					    if (anagrams_found)
-						    printf("|");
-					    else
-					    {
-						    if (i)
-							    printf(" ");
-					    }
-					    printf("%s", word_list[iWord]);
-					    anagrams_found++;
-				    }
-			    }
-		    }
+            for (i = 0; i < level; i++)
+                mask_completed_length[level_mask[i]] = 0;
+        
+            //print the current sentence
+            for (i = 0; i < level; i++)
+            {
+                int mask = level_dict[i][level_word_index[i]];
+                int anagrams_found = 0;
+                for (iWord = 0; iWord < num_words; iWord++)
+                {
+                    if (word_mask[iWord] == mask)
+                    {
+                        if (anagrams_found)
+                            printf("|");
+                        else
+                        {
+                            if (i)
+                                printf(" ");
+                        }
+                        printf("%s", word_list[iWord]);
+                        anagrams_found++;
+                    }
+                }
+            }
 
-			num_solutions++;
-			printf("      found at %i mins %0.3f secs (%i)\n",
-				(int)(clock() / (60 * CLOCKS_PER_SEC)),
-				(float)(clock() % (60 * CLOCKS_PER_SEC)) / CLOCKS_PER_SEC,
-				num_solutions);            
-			level--;									//continue searching for more pangram heterograms
-			continue;
-	    }	
+            num_solutions++;
+            printf("      found at %i mins %0.3f secs (%i)\n",
+                (int)(clock() / (60 * CLOCKS_PER_SEC)),
+                (float)(clock() % (60 * CLOCKS_PER_SEC)) / CLOCKS_PER_SEC,
+                num_solutions);            
+            level--;                                    //continue searching for more pangram heterograms
+            continue;
+        }    
     
-	    //create a new dict for this level, based on the prev levels dict, only containing valid words
-	    //start from prev levels current index, produces only sentences in alphabetic order
+        //create a new dict for this level, based on the prev levels dict, only containing valid words
+        //start from prev levels current index, produces only sentences in alphabetic order
         level_dict_length[level] = 0;
-	    for (i = level_word_index[level - 1] + 1; i < level_dict_length[level - 1]; ++i)
-	    {
-		    if ((level_mask[level] & level_dict[level - 1][i]) == 0)
-			    level_dict[level][level_dict_length[level]++] = level_dict[level - 1][i];
-	    }
+        for (i = level_word_index[level - 1] + 1; i < level_dict_length[level - 1]; ++i)
+        {
+            if ((level_mask[level] & level_dict[level - 1][i]) == 0)
+                level_dict[level][level_dict_length[level]++] = level_dict[level - 1][i];
+        }
         level_stop_index[level] = level_dict_length[level];
     
         //test if a leaf with this bitmask has been calculated previously
@@ -274,20 +274,20 @@ void pangram_heterogram(const char *dict_file)
             //if the dict size then was greater than now, skip it
             if(mask_completed_length[level_mask[level]] >= level_dict_length[level])
             {
-			    level--;
-			    continue;
+                level--;
+                continue;
             }
             //only process words at start of dict, skipping prev size words
-		    level_stop_index[level] = level_dict_length[level] - mask_completed_length[level_mask[level]];
-	    }
+            level_stop_index[level] = level_dict_length[level] - mask_completed_length[level_mask[level]];
+        }
         //store the number of words in dict at this bitmask
-	    mask_completed_length[level_mask[level]] = level_dict_length[level];
+        mask_completed_length[level_mask[level]] = level_dict_length[level];
     }
     
-	printf("finished at %i mins %0.3f secs, with %i solutions.\n",
-		(int)(clock() / (60 * CLOCKS_PER_SEC)),
-		(float)(clock() % (60 * CLOCKS_PER_SEC)) / CLOCKS_PER_SEC,
-		num_solutions);
+    printf("finished at %i mins %0.3f secs, with %i solutions.\n",
+        (int)(clock() / (60 * CLOCKS_PER_SEC)),
+        (float)(clock() % (60 * CLOCKS_PER_SEC)) / CLOCKS_PER_SEC,
+        num_solutions);
 
     free(dictionary_data);
     free(word_list);
@@ -311,8 +311,8 @@ int main(int argc, const char** argv)
     const char *filename = "Collins Scrabble Words (2019).txt";
     if(argc >= 2)
         filename = argv[1];
-	pangram_heterogram(filename);
+    pangram_heterogram(filename);
     getchar();    
 
-	return 0;
+    return 0;
 }
